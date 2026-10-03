@@ -1,5 +1,5 @@
 //
-//  SearchEndpoints.swift
+//  SearchEndpoint.swift
 //  iTunesSearchApiDemoApp
 //
 //  Created by Melisa Öztürk on 3.10.2026.
@@ -7,11 +7,11 @@
 
 import Foundation
 
-enum SearchEndpoints {
+enum SearchEndpoint {
     case search(term: String)
 }
 
-extension SearchEndpoints: Endpoint {
+extension SearchEndpoint: Endpoint {
     
     var base: String {
         return "https://itunes.apple.com"

@@ -13,7 +13,7 @@ struct SearchResponse: Decodable {
 }
 
 struct SoftwareResult: Decodable {
-    let trackId: Int?
+    let trackId: Int
     let trackName: String?
     let artworkUrl100: String?
     let artworkUrl512: String?

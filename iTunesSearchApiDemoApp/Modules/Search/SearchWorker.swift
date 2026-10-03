@@ -7,37 +7,30 @@
 
 import Foundation
 
-protocol SearchWorkerProtocol {
-    func searchApps(term: String, completion: @escaping (Result<[SoftwareResult], APIError>) -> Void)
+protocol SearchWorkerDelegate {
+    func searchSoftwares(term: String, completion: @escaping (Result<[SoftwareResult], APIError>) -> Void) -> Cancellable?
 }
-
-final class SearchWorker: SearchWorkerProtocol {
+ 
+final class SearchWorker: SearchWorkerDelegate {
     private let apiClient: APIClient
-
+ 
     init(apiClient: APIClient = URLSessionAPIClient()) {
         self.apiClient = apiClient
     }
-
-    func searchApps(term: String, completion: @escaping (Result<[SoftwareResult], APIError>) -> Void) {
+ 
+    @discardableResult
+    func searchSoftwares(term: String, completion: @escaping (Result<[SoftwareResult], APIError>) -> Void) -> Cancellable? {
         guard !term.isEmpty else {
             completion(.success([]))
-            return
+            return nil
         }
-
-        let endpoint = SearchEndpoints.search(term: term)
-
-        apiClient.fetch(
-            SearchResponse.self,
-            request: endpoint.request
-        ) { result in
-            switch result {
-            case .success(let response):
-                completion(
-                    .success(response.results!)
-                ) // TODO: response.results fix
-            case .failure(let error):
-                completion(.failure(error))
-            }
+ 
+        let endpoint = SearchEndpoint.search(term: term)
+ 
+        return apiClient.fetch(SearchResponse.self, request: endpoint.request) { result in
+            // results nil gelse bile completion mutlaka çağrılmalı
+            completion(result.map { $0.results ?? [] })
         }
     }
 }
+ 
