@@ -7,11 +7,37 @@
 
 import UIKit
 
-class SearchViewController: UIViewController {
+final class SearchViewController: UIViewController {
+
+    private let worker = SearchWorker()
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        view.backgroundColor = .white
 
-        // Do any additional setup after loading the view.
+        testSearch()
+    }
+
+    private func testSearch() {
+        worker.searchApps(term: "facebook") { result in
+            DispatchQueue.main.async {
+                switch result {
+                case .success(let apps):
+                    
+                    if let firstApp = apps.first {
+
+                        firstApp.screenshotUrls!.prefix(3).forEach { url in
+                            
+                        }
+                    }
+
+                case .failure(let error):
+                    //TODO: Log-
+                    #if Debug
+                        print("❌ Error: \(error.localizedDescription)")
+                    #endif
+                }
+            }
+        }
     }
 }
