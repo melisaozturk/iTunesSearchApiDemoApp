@@ -91,8 +91,7 @@ final class SearchViewController: UIViewController {
     }
     
     deinit {
-        debouncer.cancel()
-        print("✅ SearchViewController deallocated") // Debugging için
+        debouncer.cancel()        
     }
     
     // MARK: - Private functions

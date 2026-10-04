@@ -52,6 +52,5 @@ final class PreviewInteractor: PreviewBusinessLogic {
     // MARK: - Cleanup
     deinit {
         downloadTask?.cancel()
-        print("✅ PreviewInteractor deallocated")
     }
 }

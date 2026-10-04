@@ -29,7 +29,6 @@ final class SearchInteractor: SearchBusinessLogic {
     
     deinit {
         currentSearchTask?.cancel()
-        print("✅ SearchInteractor deallocated") // Debugging için
     }
     
     // MARK: - Business Logic
