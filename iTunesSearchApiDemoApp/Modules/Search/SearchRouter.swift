@@ -7,19 +7,19 @@
 
 import UIKit
 
-protocol SearchRouterDelegate: AnyObject {
+protocol SearchRoutingLogic: AnyObject {
     func routeToImagePreview(screenshotUrl: String)
 }
- 
-final class SearchRouter: SearchRouterDelegate {
- 
+
+final class SearchRouter: SearchRoutingLogic {
+
     weak var viewController: UIViewController?
- 
+
     // MARK: - Routing
- 
+
     func routeToImagePreview(screenshotUrl: String) {
-        let preview = PreviewViewController(imageUrl: screenshotUrl)
+        // PreviewConfigurator kullan (VIP uyumlu)
+        let preview = PreviewConfigurator.configure(imageUrl: screenshotUrl)
         viewController?.present(preview, animated: true)
     }
 }
- 

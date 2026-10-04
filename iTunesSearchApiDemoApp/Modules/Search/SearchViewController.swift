@@ -8,7 +8,7 @@
 import UIKit
 import SnapKit
 
-protocol SearchViewControllerDelegate: AnyObject {
+protocol SearchDisplayLogic: AnyObject {
     func displaySoftwares(viewModel: Search.FetchSoftwares.ViewModel)
     func displayLoading()
     func displayError(message: String)
@@ -16,8 +16,8 @@ protocol SearchViewControllerDelegate: AnyObject {
  
 final class SearchViewController: UIViewController {
  
-    var interactor: SearchInteractorDelegate?
-    var router: SearchRouterDelegate?
+    var interactor: SearchBusinessLogic?
+    var router: SearchRoutingLogic?
  
     private var displayedSoftwares: [Search.FetchSoftwares.ViewModel.DisplayedSoftware] = []
     private var prefetchTokens: [IndexPath: Cancellable] = [:]
@@ -84,32 +84,22 @@ final class SearchViewController: UIViewController {
  
     override func viewDidLoad() {
         super.viewDidLoad()
-        setupVIP()
         setupUI()
     }
  
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
-        // Disk cache kalsın, sadece memory boşaltılsın
-        ImageCache.shared.clearMemory()
+        interactor?.handleMemoryWarning()
     }
- 
-    // MARK: - Setup
- 
-    private func setupVIP() {
-        let interactor = SearchInteractor()
-        let presenter = SearchPresenter()
-        let router = SearchRouter()
- 
-        interactor.presenter = presenter
-        interactor.worker = SearchWorker()
-        presenter.viewController = self
-        router.viewController = self
- 
-        self.interactor = interactor
-        self.router = router
+    
+    deinit {
+        debouncer.cancel()
+        prefetchTokens.values.forEach { $0.cancel() }
+        prefetchTokens.removeAll()
+        print("✅ SearchViewController deallocated") // Debugging için
     }
- 
+    
+    // MARK: - Private functions
     private func setupUI() {
         view.backgroundColor = .systemBackground
  
@@ -139,8 +129,6 @@ final class SearchViewController: UIViewController {
         }
     }
  
-    // MARK: - Helpers
- 
     private func screenshotUrl(at indexPath: IndexPath) -> String? {
         guard displayedSoftwares.indices.contains(indexPath.section),
               let urls = displayedSoftwares[indexPath.section].screenshotUrls,
@@ -167,15 +155,14 @@ final class SearchViewController: UIViewController {
     }
 }
  
-// MARK: - SearchViewControllerDelegate
- 
-extension SearchViewController: SearchViewControllerDelegate {
+// MARK: - SearchDisplayLogic
+extension SearchViewController: SearchDisplayLogic {
     func displaySoftwares(viewModel: Search.FetchSoftwares.ViewModel) {
         activityIndicator.stopAnimating()
  
         if viewModel.isEmpty ?? false {
             updateList(with: [])
-            emptyStateLabel.text = viewModel.errorMessage ?? "No results found"
+            emptyStateLabel.text = "No results found" //TODO: constant
             emptyStateLabel.isHidden = false
         } else {
             updateList(with: viewModel.softwares ?? [])
@@ -187,7 +174,7 @@ extension SearchViewController: SearchViewControllerDelegate {
         activityIndicator.startAnimating()
         emptyStateLabel.isHidden = true
     }
- 
+    
     func displayError(message: String) {
         activityIndicator.stopAnimating()
         updateList(with: [])
@@ -197,7 +184,6 @@ extension SearchViewController: SearchViewControllerDelegate {
 }
  
 // MARK: - UICollectionViewDataSource
- 
 extension SearchViewController: UICollectionViewDataSource {
     func numberOfSections(in collectionView: UICollectionView) -> Int {
         displayedSoftwares.count
@@ -208,21 +194,28 @@ extension SearchViewController: UICollectionViewDataSource {
     }
  
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        guard let cell = collectionView.dequeueReusableCell(
-            withReuseIdentifier: ScreenshotCell.reuseIdentifier,
-            for: indexPath
-        ) as? ScreenshotCell,
-              let url = screenshotUrl(at: indexPath) else {
-            return UICollectionViewCell()
-        }
- 
-        cell.configure(with: displayedSoftwares[indexPath.section], screenshotUrl: url)
-        return cell
-    }
+         guard let cell = collectionView.dequeueReusableCell(
+             withReuseIdentifier: ScreenshotCell.reuseIdentifier,
+             for: indexPath
+         ) as? ScreenshotCell,
+               let url = screenshotUrl(at: indexPath) else {
+             return UICollectionViewCell()
+         }
+
+         // ImageProvider'ı inject et - VIP üzerinden
+         cell.configure(
+             with: displayedSoftwares[indexPath.section],
+             screenshotUrl: url,
+             imageProvider: { [weak self] urlString, completion in
+                 // Interactor → Worker → ImageDownloadManager
+                 return self?.interactor?.loadImage(url: urlString, completion: completion)
+             }
+         )
+         return cell
+     }
 }
  
 // MARK: - UICollectionViewDelegateFlowLayout
- 
 extension SearchViewController: UICollectionViewDelegateFlowLayout {
     func collectionView(_ collectionView: UICollectionView,
                         layout collectionViewLayout: UICollectionViewLayout,
@@ -235,7 +228,6 @@ extension SearchViewController: UICollectionViewDelegateFlowLayout {
 }
  
 // MARK: - UICollectionViewDelegate
- 
 extension SearchViewController: UICollectionViewDelegate {
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         guard let url = screenshotUrl(at: indexPath) else { return }
@@ -244,7 +236,6 @@ extension SearchViewController: UICollectionViewDelegate {
 }
  
 // MARK: - UISearchBarDelegate
- 
 extension SearchViewController: UISearchBarDelegate {
     func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
         let term = searchText.trimmingCharacters(in: .whitespaces)
@@ -271,14 +262,14 @@ extension SearchViewController: UISearchBarDelegate {
 }
  
 // MARK: - UICollectionViewDataSourcePrefetching
- 
 extension SearchViewController: UICollectionViewDataSourcePrefetching {
     func collectionView(_ collectionView: UICollectionView, prefetchItemsAt indexPaths: [IndexPath]) {
-        for indexPath in indexPaths where prefetchTokens[indexPath] == nil {
-            guard let url = screenshotUrl(at: indexPath) else { continue }
-            prefetchTokens[indexPath] = ImageDownloadManager.shared.downloadImage(from: url) { _ in }
-        }
-    }
+         for indexPath in indexPaths where prefetchTokens[indexPath] == nil {
+             guard let url = screenshotUrl(at: indexPath) else { continue }
+             // Interactor → Worker → ImageDownloadManager
+             prefetchTokens[indexPath] = interactor?.prefetchImage(url: url)
+         }
+     }
  
     func collectionView(_ collectionView: UICollectionView, cancelPrefetchingForItemsAt indexPaths: [IndexPath]) {
         // Sadece prefetch'in kendi isteği iptal edilir; cell aynı görseli bekliyorsa indirme devam eder

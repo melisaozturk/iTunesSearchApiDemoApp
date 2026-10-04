@@ -5,7 +5,6 @@
 //  Created by Melisa Öztürk on 2.10.2026.
 //
 
-
 import Foundation
 
 protocol Endpoint {
@@ -15,7 +14,6 @@ protocol Endpoint {
 }
 
 extension Endpoint {
-    
     var urlComponents: URLComponents {
         var components = URLComponents(string: base)!
         components.path = path

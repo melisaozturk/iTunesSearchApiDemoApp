@@ -5,75 +5,53 @@
 //  Created by Melisa Öztürk on 2.10.2026.
 //
 
-protocol SearchPresentationDelegate {
+import Foundation
+
+protocol SearchPresentationLogic {
     func presentSoftwares(response: Search.FetchSoftwares.Response)
     func presentLoading()
 }
 
-final class SearchPresenter: SearchPresentationDelegate {
-    
-    weak var viewController: SearchViewControllerDelegate?
-    
+final class SearchPresenter: SearchPresentationLogic {
+
+    weak var viewController: SearchDisplayLogic?
+
     func presentSoftwares(response: Search.FetchSoftwares.Response) {
+        // SearchInteractor zaten main thread'de çağrıyor
+        // ERROR CASE
         if let error = response.error {
-            let errorMessage = formatErrorMessage(error)
-            let viewModel = Search.FetchSoftwares.ViewModel(
-                softwares: [],
-                isEmpty: true,
-                errorMessage: errorMessage
-            )
-            viewController?.displaySoftwares(viewModel: viewModel)
+            let errorMessage = error.userMessage
+            viewController?.displayError(message: errorMessage)
             return
         }
-        
-        guard let softwares = response.softwares else {return }
-        
+
+        // NO DATA CASE
+        guard let softwares = response.softwares else { return }
+
+        // EMPTY RESULTS CASE
         if softwares.isEmpty {
-            let viewModel = Search.FetchSoftwares.ViewModel(
-                softwares: [],
-                isEmpty: true,
-                errorMessage: "No results found"
-            )
-            viewController?.displaySoftwares(viewModel: viewModel)
+            viewController?.displayError(message: "No results found")
             return
         }
-        
+
+        // SUCCESS CASE
         let displayedSoftwares = softwares.map { software in
             Search.FetchSoftwares.ViewModel.DisplayedSoftware(
-                trackId: software.trackId,
                 name: software.trackName ?? "",
                 artistName: software.artistName ?? "",
-                iconUrl: software.artworkUrl100 ?? "",
                 screenshotUrls: software.screenshotUrls ?? []
             )
         }
-        
+
         let viewModel = Search.FetchSoftwares.ViewModel(
             softwares: displayedSoftwares,
-            isEmpty: false,
-            errorMessage: nil
+            isEmpty: false
         )
-        
+
         viewController?.displaySoftwares(viewModel: viewModel)
     }
-    
+
     func presentLoading() {
         viewController?.displayLoading()
-    }
-    
-    // MARK: - Private Helpers
-    private func formatErrorMessage(_ error: APIError) -> String {
-        switch error {
-        case .networkError:
-            return "Network error. Please check your connection."
-        case .cancelled:
-            return "Search cancelled"
-        case .invalidResponse:
-            return "Invalid response from server"
-        case .httpStatus(let code):
-            return "Server error (\(code))"
-        case .decoding:
-            return "Failed to process results"
-        }
     }
 }

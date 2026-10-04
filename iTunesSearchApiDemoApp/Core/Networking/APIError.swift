@@ -5,27 +5,35 @@
 //  Created by Melisa Öztürk on 2.10.2026.
 //
 
+
 import Foundation
 
+/// API-specific errors for iTunes Search API
 enum APIError: Error {
-    case networkError(Error)
-    case cancelled
-    case invalidResponse
-    case httpStatus(Int)
-    case decoding(Error)
+    case network(NetworkError)  // ← NetworkError wrap ediliyor
+    case decoding(Error)        // ← API'ya özel
 }
 
-// Log description
+// MARK: - User-Friendly Messages
 extension APIError: LocalizedError {
     var errorDescription: String? {
         switch self {
-        case .networkError(
-            let error
-        ): return "Network error: \(error.localizedDescription)"
-        case .cancelled:            return "Request cancelled"
-        case .invalidResponse:      return "Invalid response"
-        case .httpStatus(let code): return "HTTP status \(code)"
-        case .decoding(let error):  return "Decoding failed: \(error)"
+        case .network(let networkError):
+            return networkError.errorDescription
+        case .decoding(let error):
+            return "Decoding failed: \(error)"
+        }
+    }
+}
+
+// MARK: - User-Presentable Messages
+extension APIError {
+    var userMessage: String {
+        switch self {
+        case .network(let networkError):
+            return networkError.userMessage
+        case .decoding:
+            return "Failed to process results"
         }
     }
 }

@@ -8,18 +8,12 @@
 import Foundation
 
 struct SearchResponse: Decodable {
-    let resultCount: Int?
     let results: [SoftwareResult]?
 }
 
-struct SoftwareResult: Decodable {
-    let trackId: Int
+struct SoftwareResult: Decodable {    
     let trackName: String?
     let artworkUrl100: String?
-    let artworkUrl512: String?
     let screenshotUrls: [String]?
     let artistName: String?
-    let averageUserRating: Double?
-    let userRatingCount: Int?
-    let description: String?
 }

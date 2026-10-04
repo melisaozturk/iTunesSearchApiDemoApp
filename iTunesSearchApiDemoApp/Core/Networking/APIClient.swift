@@ -34,6 +34,7 @@ extension APIClient {
     }
 }
 
+// TODO: move
 final class URLSessionAPIClient: APIClient {
     private let session: URLSession
 
@@ -44,17 +45,27 @@ final class URLSessionAPIClient: APIClient {
     func send(_ request: URLRequest,
               completion: @escaping (Result<Data, APIError>) -> Void) -> Cancellable {
         let task = session.dataTask(with: request) { data, response, error in
+            // Cancelled
             if let error = error as? URLError, error.code == .cancelled {
-                return completion(.failure(.cancelled))
+                return completion(.failure(.network(.cancelled)))  // ← NetworkError wrap
             }
-            if let error { return completion(.failure(.networkError(error))) }
+
+            // Network error
+            if let error {
+                return completion(.failure(.network(.networkFailure(error))))  // ← NetworkError wrap
+            }
+
+            // Invalid response
             guard let http = response as? HTTPURLResponse, let data else {
-                return completion(.failure(.invalidResponse))
+                return completion(.failure(.network(.invalidResponse)))  // ← NetworkError wrap
             }
+
+            // HTTP status error
             guard (200..<300).contains(http.statusCode) else {
-                return completion(.failure(.httpStatus(http.statusCode)))
+                return completion(.failure(.network(.httpStatus(http.statusCode))))  // ← NetworkError wrap
             }
-            // TODO: Add other cases
+
+            // Success
             completion(.success(data))
         }
         task.resume()

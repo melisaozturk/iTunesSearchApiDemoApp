@@ -21,16 +21,13 @@ enum Search {
 
         struct ViewModel {
             struct DisplayedSoftware {
-                let trackId: Int
                 let name: String?
                 let artistName: String?
-                let iconUrl: String?
                 let screenshotUrls: [String]?
             }
 
             let softwares: [DisplayedSoftware]?
             let isEmpty: Bool?
-            let errorMessage: String?
         }
     }
 }

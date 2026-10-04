@@ -6,52 +6,81 @@
 //
 
 import Foundation
+import UIKit
 
-protocol SearchInteractorDelegate {
+protocol SearchBusinessLogic {
     func fetchSoftwares(request: Search.FetchSoftwares.Request)
     func cancelSearch()
+    func handleMemoryWarning()
+    @discardableResult
+    func loadImage(
+        url: String,
+        completion: @escaping (
+            Result<UIImage, NetworkError>
+        ) -> Void
+    ) -> Cancellable?
+    @discardableResult
+    func prefetchImage(url: String) -> Cancellable?
 }
- 
-final class SearchInteractor: SearchInteractorDelegate {
-    var presenter: SearchPresentationDelegate?
-    var worker: SearchWorkerDelegate?
- 
+
+final class SearchInteractor: SearchBusinessLogic {
+    var presenter: SearchPresentationLogic?
+    var worker: SearchWorkerLogic?
+    
     private var currentSearchTask: Cancellable?
- 
-    // MARK: - Business Logic
- 
+    
+    deinit {
+         currentSearchTask?.cancel()
+         print("✅ SearchInteractor deallocated") // Debugging için
+     }
+
+    // MARK: - Business Logic    
     func fetchSoftwares(request: Search.FetchSoftwares.Request) {
         currentSearchTask?.cancel()
- 
+        
         guard let searchTerm = request.searchTerm, !searchTerm.isEmpty else {
             presenter?.presentSoftwares(response: .init(softwares: [], error: nil))
             return
         }
- 
+        
         presenter?.presentLoading()
- 
+        
         currentSearchTask = worker?.searchSoftwares(term: searchTerm) { [weak self] result in
             DispatchQueue.main.async {
                 guard let self else { return }
- 
+                
                 switch result {
                 case .success(let softwares):
                     self.presenter?.presentSoftwares(response: .init(softwares: softwares, error: nil))
- 
-                case .failure(.cancelled):
+                    
+                case .failure(.network(.cancelled)):
                     // Yeni arama eskisini iptal etti; ekranda "Search cancelled" göstermeye gerek yok
                     return
- 
+                    
                 case .failure(let error):
                     self.presenter?.presentSoftwares(response: .init(softwares: [], error: error))
                 }
             }
         }
     }
- 
+    
     func cancelSearch() {
         currentSearchTask?.cancel()
         currentSearchTask = nil
     }
+    
+    func handleMemoryWarning() {
+        worker?.clearImageCache()
+    }
+    
+    @discardableResult
+    func loadImage(url: String, completion: @escaping (Result<UIImage, NetworkError>) -> Void) -> Cancellable? {
+        return worker?.loadImage(url: url, completion: completion)
+    }
+    
+    @discardableResult
+    func prefetchImage(url: String) -> Cancellable? {
+        return worker?.prefetchImage(url: url)
+    }
 }
- 
+

@@ -6,18 +6,28 @@
 //
 
 import Foundation
+import UIKit
 
-protocol SearchWorkerDelegate {
+protocol SearchWorkerLogic {
     func searchSoftwares(term: String, completion: @escaping (Result<[SoftwareResult], APIError>) -> Void) -> Cancellable?
+    func clearImageCache()
+    @discardableResult
+    func loadImage(url: String, completion: @escaping (Result<UIImage, NetworkError>) -> Void) -> Cancellable?
+    @discardableResult
+    func prefetchImage(url: String) -> Cancellable?
 }
  
-final class SearchWorker: SearchWorkerDelegate {
+final class SearchWorker: SearchWorkerLogic {
     private let apiClient: APIClient
  
     init(apiClient: APIClient = URLSessionAPIClient()) {
         self.apiClient = apiClient
     }
- 
+    
+    func clearImageCache() {
+        ImageCache.shared.clearMemory()
+    }
+    
     @discardableResult
     func searchSoftwares(term: String, completion: @escaping (Result<[SoftwareResult], APIError>) -> Void) -> Cancellable? {
         guard !term.isEmpty else {
@@ -31,6 +41,17 @@ final class SearchWorker: SearchWorkerDelegate {
             // results nil gelse bile completion mutlaka çağrılmalı
             completion(result.map { $0.results ?? [] })
         }
+    }
+    
+    @discardableResult
+     func loadImage(url: String, completion: @escaping (Result<UIImage, NetworkError>) -> Void) -> Cancellable? {
+         return ImageDownloadManager.shared.downloadImage(from: url, completion: completion)
+     }
+    
+    @discardableResult
+    func prefetchImage(url: String) -> Cancellable? {
+        // Prefetch için completion gereksiz
+        return ImageDownloadManager.shared.downloadImage(from: url)  { (_: Result<UIImage, NetworkError>) in }
     }
 }
  
