@@ -20,7 +20,6 @@ final class SearchViewController: UIViewController {
     var router: SearchRoutingLogic?
  
     private var displayedSoftwares: [Search.FetchSoftwares.ViewModel.DisplayedSoftware] = []
-    private var prefetchTokens: [IndexPath: Cancellable] = [:]
     private let debouncer = Debouncer(delay: 0.5)
  
     private enum Constants {
@@ -57,7 +56,6 @@ final class SearchViewController: UIViewController {
         cv.backgroundColor = .systemBackground
         cv.delegate = self
         cv.dataSource = self
-        cv.prefetchDataSource = self
         cv.keyboardDismissMode = .onDrag
         cv.register(ScreenshotCell.self, forCellWithReuseIdentifier: ScreenshotCell.reuseIdentifier)
         return cv
@@ -94,8 +92,6 @@ final class SearchViewController: UIViewController {
     
     deinit {
         debouncer.cancel()
-        prefetchTokens.values.forEach { $0.cancel() }
-        prefetchTokens.removeAll()
         print("✅ SearchViewController deallocated") // Debugging için
     }
     
@@ -139,8 +135,6 @@ final class SearchViewController: UIViewController {
     }
  
     private func updateList(with softwares: [Search.FetchSoftwares.ViewModel.DisplayedSoftware]) {
-        prefetchTokens.values.forEach { $0.cancel() }
-        prefetchTokens.removeAll()
         displayedSoftwares = softwares
         collectionView.reloadData()
     }
@@ -260,22 +254,3 @@ extension SearchViewController: UISearchBarDelegate {
         resetToInitialState()
     }
 }
- 
-// MARK: - UICollectionViewDataSourcePrefetching
-extension SearchViewController: UICollectionViewDataSourcePrefetching {
-    func collectionView(_ collectionView: UICollectionView, prefetchItemsAt indexPaths: [IndexPath]) {
-         for indexPath in indexPaths where prefetchTokens[indexPath] == nil {
-             guard let url = screenshotUrl(at: indexPath) else { continue }
-             // Interactor → Worker → ImageDownloadManager
-             prefetchTokens[indexPath] = interactor?.prefetchImage(url: url)
-         }
-     }
- 
-    func collectionView(_ collectionView: UICollectionView, cancelPrefetchingForItemsAt indexPaths: [IndexPath]) {
-        // Sadece prefetch'in kendi isteği iptal edilir; cell aynı görseli bekliyorsa indirme devam eder
-        for indexPath in indexPaths {
-            prefetchTokens.removeValue(forKey: indexPath)?.cancel()
-        }
-    }
-}
- 

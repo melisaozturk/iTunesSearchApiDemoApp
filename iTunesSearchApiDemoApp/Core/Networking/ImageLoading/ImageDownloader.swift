@@ -61,7 +61,7 @@ final class ImageDownloader: Operation, @unchecked Sendable {
             finish()
             return
         }
-        
+                
         // KVO notification (state zaten değişti)
         willChangeValue(forKey: "isExecuting")
         didChangeValue(forKey: "isExecuting")

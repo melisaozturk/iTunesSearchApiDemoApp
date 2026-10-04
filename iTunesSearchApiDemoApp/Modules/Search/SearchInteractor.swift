@@ -19,8 +19,6 @@ protocol SearchBusinessLogic {
             Result<UIImage, NetworkError>
         ) -> Void
     ) -> Cancellable?
-    @discardableResult
-    func prefetchImage(url: String) -> Cancellable?
 }
 
 final class SearchInteractor: SearchBusinessLogic {
@@ -30,11 +28,11 @@ final class SearchInteractor: SearchBusinessLogic {
     private var currentSearchTask: Cancellable?
     
     deinit {
-         currentSearchTask?.cancel()
-         print("✅ SearchInteractor deallocated") // Debugging için
-     }
-
-    // MARK: - Business Logic    
+        currentSearchTask?.cancel()
+        print("✅ SearchInteractor deallocated") // Debugging için
+    }
+    
+    // MARK: - Business Logic
     func fetchSoftwares(request: Search.FetchSoftwares.Request) {
         currentSearchTask?.cancel()
         
@@ -51,8 +49,15 @@ final class SearchInteractor: SearchBusinessLogic {
                 
                 switch result {
                 case .success(let softwares):
-                    self.presenter?.presentSoftwares(response: .init(softwares: softwares, error: nil))
                     
+                    let imageURLs = softwares
+                        .flatMap { $0.screenshotUrls ?? [] }
+                    
+                    self.worker?.downloadImages(urls: imageURLs)
+                    
+                    self.presenter?.presentSoftwares( response: .init(
+                        softwares: softwares,
+                        error: nil))
                 case .failure(.network(.cancelled)):
                     // Yeni arama eskisini iptal etti; ekranda "Search cancelled" göstermeye gerek yok
                     return
@@ -76,11 +81,6 @@ final class SearchInteractor: SearchBusinessLogic {
     @discardableResult
     func loadImage(url: String, completion: @escaping (Result<UIImage, NetworkError>) -> Void) -> Cancellable? {
         return worker?.loadImage(url: url, completion: completion)
-    }
-    
-    @discardableResult
-    func prefetchImage(url: String) -> Cancellable? {
-        return worker?.prefetchImage(url: url)
     }
 }
 
