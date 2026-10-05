@@ -17,27 +17,23 @@ final class URLSessionAPIClient: APIClient {
     func send(_ request: URLRequest,
               completion: @escaping (Result<Data, APIError>) -> Void) -> Cancellable {
         let task = session.dataTask(with: request) { data, response, error in
-            // Cancelled
+            
             if let error = error as? URLError, error.code == .cancelled {
-                return completion(.failure(.network(.cancelled)))  // ← NetworkError wrap
+                return completion(.failure(.network(.cancelled)))
             }
 
-            // Network error
             if let error {
-                return completion(.failure(.network(.networkFailure(error))))  // ← NetworkError wrap
+                return completion(.failure(.network(.networkFailure(error))))
             }
 
-            // Invalid response
             guard let http = response as? HTTPURLResponse, let data else {
-                return completion(.failure(.network(.invalidResponse)))  // ← NetworkError wrap
+                return completion(.failure(.network(.invalidResponse)))
             }
 
-            // HTTP status error
             guard (200..<300).contains(http.statusCode) else {
-                return completion(.failure(.network(.httpStatus(http.statusCode))))  // ← NetworkError wrap
+                return completion(.failure(.network(.httpStatus(http.statusCode))))
             }
 
-            // Success
             completion(.success(data))
         }
         task.resume()

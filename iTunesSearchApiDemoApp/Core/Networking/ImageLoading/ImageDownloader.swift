@@ -12,9 +12,8 @@ final class ImageDownloader: Operation, @unchecked Sendable {
     // MARK: - Properties
     private let url: URL
     private let session: URLSession
-    private let completion: (Result<UIImage, NetworkError>) -> Void  // ← NetworkError
+    private let completion: (Result<UIImage, NetworkError>) -> Void
     
-    // Durum farklı thread'lerden okunup yazıldığı için lock ile korunuyor
     private let stateLock = NSLock()
     private var task: URLSessionDataTask?
     private var _isExecuting = false
@@ -22,50 +21,46 @@ final class ImageDownloader: Operation, @unchecked Sendable {
     
     override var isAsynchronous: Bool { true }
     
-    override var isExecuting: Bool {
-        stateLock.lock(); defer { stateLock.unlock() }
-        return _isExecuting
-    }
-    
-    override var isFinished: Bool {
-        stateLock.lock(); defer { stateLock.unlock() }
-        return _isFinished
-    }
-    
-    // MARK: - Init
-    
     init(url: URL,
          session: URLSession = .shared,
-         completion: @escaping (Result<UIImage, NetworkError>) -> Void) {  // ← NetworkError
+         completion: @escaping (Result<UIImage, NetworkError>) -> Void) {
         self.url = url
         self.session = session
         self.completion = completion
         super.init()
     }
     
-    // MARK: - Operation Lifecycle
-    
-    override func start() {
-        // Atomic cancelled check + executing state set
+    override var isExecuting: Bool {
         stateLock.lock()
-        let wasCancelled = isCancelled
-        if !wasCancelled {
-            _isExecuting = true
-        }
-        stateLock.unlock()
-        
-        // Eğer cancelled, temizle ve çık
-        guard !wasCancelled else {
+        defer { stateLock.unlock() }
+        return _isExecuting
+    }
+    
+    override var isFinished: Bool {
+        stateLock.lock()
+        defer { stateLock.unlock() }
+        return _isFinished
+    }
+    
+    // MARK: - Operation Lifecycle (Key-Value Observing notification)
+    override func start() {
+        guard !isCancelled else {
             completion(.failure(.cancelled))
             finish()
             return
         }
-                
-        // KVO notification (state zaten değişti)
+        
         willChangeValue(forKey: "isExecuting")
+        
+        stateLock.lock()
+        _isExecuting = true
+        stateLock.unlock()
+        
         didChangeValue(forKey: "isExecuting")
         
-        let dataTask = session.dataTask(with: url) { [self] data, response, error in
+        let dataTask = session.dataTask(with: url) { [weak self] data, response, error in
+            guard let self else { return }
+            
             defer { finish() }
             guard !isCancelled else { return }
             
@@ -86,30 +81,27 @@ final class ImageDownloader: Operation, @unchecked Sendable {
         task = dataTask
         stateLock.unlock()
         
+        if isCancelled {
+            dataTask.cancel()
+        }
+        
         dataTask.resume()
     }
     
     override func cancel() {
-        // State check önce (lock içinde)
         stateLock.lock()
         let wasFinished = _isFinished
         let runningTask = task
         stateLock.unlock()
         
-        // isCancelled flag'i set et
         super.cancel()
         
-        // Sadece henüz bitmemişse cancel et
         if !wasFinished {
             runningTask?.cancel()
         }
     }
     
-    
-    // MARK: - KVO helpers
-    
     private func finish() {
-        // Atomic state transition (check + set tek lock içinde)
         stateLock.lock()
         
         guard !_isFinished else {
@@ -118,19 +110,26 @@ final class ImageDownloader: Operation, @unchecked Sendable {
         }
         
         let wasExecuting = _isExecuting
-        
-        // State değişimi lock içinde (KVO henüz yok)
-        _isExecuting = false
-        _isFinished = true
-        
         stateLock.unlock()
         
-        // KVO notifications lock dışında (deadlock önleme)
         if wasExecuting {
             willChangeValue(forKey: "isExecuting")
+            
+            stateLock.lock()
+            _isExecuting = false
+            stateLock.unlock()
+            
             didChangeValue(forKey: "isExecuting")
         }
+        
         willChangeValue(forKey: "isFinished")
+        
+        stateLock.lock()
+        _isFinished = true
+        stateLock.unlock()
+        
         didChangeValue(forKey: "isFinished")
     }
 }
+
+extension ImageDownloader: Cancellable {}
