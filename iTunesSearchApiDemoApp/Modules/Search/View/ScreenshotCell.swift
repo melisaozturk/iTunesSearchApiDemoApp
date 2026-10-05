@@ -16,11 +16,7 @@ final class ScreenshotCell: UICollectionViewCell {
     typealias ImageProvider   = (String, @escaping ImageCompletion) -> Cancellable?
     
     private var currentDownloadTask: Cancellable?
-    private var representedUrl: String?
-    
-    var isImageLoaded: Bool {
-        screenshotImageView.image != nil
-    }
+    private var representedUrl: String?   
     
     // MARK: - UI Components
     private let screenshotImageView: UIImageView = {
