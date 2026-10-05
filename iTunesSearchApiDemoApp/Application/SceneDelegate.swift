@@ -7,23 +7,21 @@
 
 import UIKit
 
-class SceneDelegate: UIResponder, UIWindowSceneDelegate {
+final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
     var window: UIWindow?
+    private var appRouter: AppRouter?
 
-    func scene(
-        _ scene: UIScene,
-        willConnectTo session: UISceneSession,
-        options connectionOptions: UIScene.ConnectionOptions
-    ) {
-
-        guard let windowScene = scene as? UIWindowScene else {
-            return
-        }
+    func scene(_ scene: UIScene,
+               willConnectTo session: UISceneSession,
+               options connectionOptions: UIScene.ConnectionOptions) {
+        guard let windowScene = scene as? UIWindowScene else { return }
 
         let window = UIWindow(windowScene: windowScene)
-        window.rootViewController = SearchViewController()
+        let appRouter = AppRouter(window: window)
+        appRouter.start()
+
         self.window = window
-        window.makeKeyAndVisible()
+        self.appRouter = appRouter
     }
 }
