@@ -8,6 +8,7 @@
 import Foundation
 @testable import iTunesSearchApiDemoApp
 
+// MARK: Cancellable Mock
 class MockCancellableTask: Cancellable {
     var cancelCalled = false
 
@@ -16,6 +17,7 @@ class MockCancellableTask: Cancellable {
     }
 }
 
+// MARK: Response Mock
 enum ResponseData {
     static let softwares: [SoftwareResult] = [
         SoftwareResult(
@@ -23,17 +25,11 @@ enum ResponseData {
             artworkUrl100: "",
             screenshotUrls: ["https://example.com/1.jpg"],
             artistName: "Instagram, Inc."
-        ),
-        SoftwareResult(
-            trackName: "Facebook",
-            artworkUrl100: "",
-            screenshotUrls: ["https://example.com/2.jpg"],
-            artistName: "Meta Platforms, Inc."
         )
     ]
 }
 
-
+// MARK: Error Cases
 enum TestError: Error {
     case networkEror
 }

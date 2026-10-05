@@ -43,6 +43,11 @@ final class ImageDownloadManager {
 
         let operation = ImageDownloader(url: url, session: session) { [weak self] result in
             guard let self else { return }
+
+            // İptal sadece removeCallback'ten gelir ve orada state zaten temizlenmiştir.
+            // Burada deliver çağırırsak aynı URL için sonradan başlamış yeni indirmeyi bozarız.
+            if case .failure(.cancelled) = result { return }
+
             if case .success(let image) = result {
                 self.cache.store(image, for: url)
             }

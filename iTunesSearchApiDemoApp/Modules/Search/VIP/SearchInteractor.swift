@@ -29,11 +29,13 @@ final class SearchInteractor: SearchBusinessLogic {
     
     deinit {
         currentSearchTask?.cancel()
+        worker?.cancelPrefetchDownloads()
     }
     
     // MARK: - Business Logic
     func fetchSoftwares(request: Search.FetchSoftwares.Request) {
         currentSearchTask?.cancel()
+        worker?.cancelPrefetchDownloads()
         
         guard let searchTerm = request.searchTerm, !searchTerm.isEmpty else {
             presenter?.presentSoftwares(response: .init(softwares: [], error: nil))
@@ -71,10 +73,12 @@ final class SearchInteractor: SearchBusinessLogic {
     func cancelSearch() {
         currentSearchTask?.cancel()
         currentSearchTask = nil
+        worker?.cancelPrefetchDownloads()
     }
     
     func handleMemoryWarning() {
         worker?.clearImageCache()
+        worker?.cancelPrefetchDownloads()
     }
     
     @discardableResult

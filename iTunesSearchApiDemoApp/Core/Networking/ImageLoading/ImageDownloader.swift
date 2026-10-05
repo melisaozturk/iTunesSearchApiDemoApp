@@ -10,7 +10,6 @@ import UIKit
 final class ImageDownloader: Operation, @unchecked Sendable {
     
     // MARK: - Properties
-    
     private let url: URL
     private let session: URLSession
     private let completion: (Result<UIImage, NetworkError>) -> Void  // ← NetworkError

@@ -26,7 +26,7 @@ final class SearchPresenterTests: XCTestCase {
 
     func setupSearchPresenter() {
         sut = SearchPresenter()
-        viewControllerMock = SearchDisplayLogicMock()
+        viewControllerMock = MockSearchDisplayLogic()
         sut.viewController = viewControllerMock
     }
 
@@ -51,7 +51,7 @@ final class SearchPresenterTests: XCTestCase {
         sut.presentSoftwares(response: response)
 
         XCTAssertTrue(viewControllerMock.displaySoftwaresCalled)
-        XCTAssertEqual(viewControllerMock.displayedViewModel?.softwares?.count, 2)
+        XCTAssertEqual(viewControllerMock.displayedViewModel?.softwares?.count, 1)
         XCTAssertEqual(viewControllerMock.displayedViewModel?.isEmpty, false)
 
         let firstApp = viewControllerMock.displayedViewModel?.softwares?.first

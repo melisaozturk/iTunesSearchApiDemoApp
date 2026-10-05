@@ -42,7 +42,13 @@ class MockSearchWorkerLogic: SearchWorkerLogic {
     func clearImageCache() {
         clearImageCacheCalled = true
     }
+    
+    var cancelPrefetchDownloadsCallCount = 0
 
+    func cancelPrefetchDownloads() {
+        cancelPrefetchDownloadsCallCount += 1
+    }
+    
     func downloadImages(urls: [String]) {
         downloadImagesCalled = true
         downloadedImageURLs = urls
@@ -54,9 +60,5 @@ class MockSearchWorkerLogic: SearchWorkerLogic {
         loadImageURL = url
         loadImageCompletion = completion
         return MockCancellableTask()
-    }
-
-    func triggerLoadImageCompletion(with result: Result<UIImage, NetworkError>) {
-        loadImageCompletion?(result)
     }
 }
