@@ -22,14 +22,8 @@ enum ResponseData {
     static let softwares: [SoftwareResult] = [
         SoftwareResult(
             trackName: "Instagram",
-            artworkUrl100: "",
             screenshotUrls: ["https://example.com/1.jpg"],
-            artistName: "Instagram, Inc."
+            artistName: "Instagram"
         )
     ]
-}
-
-// MARK: Error Cases
-enum TestError: Error {
-    case networkEror
 }

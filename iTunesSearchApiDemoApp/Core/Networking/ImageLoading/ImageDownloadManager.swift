@@ -28,7 +28,6 @@ final class ImageDownloadManager {
         downloadQueue.name = "com.itunes.imageDownloadQueue"
     }
     
-    @discardableResult
     func downloadImage(from urlString: String, completion: @escaping Completion) -> Cancellable? {
         guard let url = URL(string: urlString) else {
             DispatchQueue.main.async { completion(.failure(.invalidURL)) }

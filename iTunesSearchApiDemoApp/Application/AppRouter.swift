@@ -8,14 +8,18 @@
 import UIKit
 
 final class AppRouter {
-    let window: UIWindow
-    
-    init(window: UIWindow) {
+
+    private let window: UIWindow
+    private let searchConfigurator: SearchConfigurator
+
+    init(window: UIWindow,
+         searchConfigurator: SearchConfigurator = SearchConfigurator()) {
         self.window = window
+        self.searchConfigurator = searchConfigurator
     }
-    
+
     func start() {
-        window.rootViewController = SearchConfigurator.configure()
+        window.rootViewController = searchConfigurator.configure()
         window.makeKeyAndVisible()
     }
 }

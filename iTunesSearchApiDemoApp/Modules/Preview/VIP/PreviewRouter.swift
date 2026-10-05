@@ -7,16 +7,13 @@
 
 import UIKit
 
-// MARK: - Routing Logic Protocol
-protocol PreviewRoutingLogic {
+protocol PreviewRoutingLogic: AnyObject {
     func dismiss()
 }
 
 final class PreviewRouter: PreviewRoutingLogic {
 
     weak var viewController: UIViewController?
-
-    // MARK: - Routing
 
     func dismiss() {
         viewController?.dismiss(animated: true)

@@ -7,50 +7,42 @@
 
 import Foundation
 
-protocol SearchPresentationLogic {
+protocol SearchPresentationLogic: AnyObject {
     func presentSoftwares(response: Search.FetchSoftwares.Response)
     func presentLoading()
 }
 
 final class SearchPresenter: SearchPresentationLogic {
-
+    
+    private enum Constants {
+        static let displayError: String = "No results found."
+    }
+    
     weak var viewController: SearchDisplayLogic?
-
+    
     func presentSoftwares(response: Search.FetchSoftwares.Response) {
-        // SearchInteractor zaten main thread'de çağrıyor
-        // ERROR CASE
         if let error = response.error {
             let errorMessage = error.userMessage
             viewController?.displayError(message: errorMessage)
             return
         }
-
-        // NO DATA CASE
-        guard let softwares = response.softwares else { return }
-
-        // EMPTY RESULTS CASE
-        if softwares.isEmpty {
-            viewController?.displayError(message: "No results found")
+        
+        if response.softwares.isEmpty {
+            viewController?.displayError(message: Constants.displayError)
             return
         }
-
-        // SUCCESS CASE
-        let displayedSoftwares = softwares.map { software in
+        
+        let displayedSoftwares = response.softwares.map { software in
             Search.FetchSoftwares.ViewModel.DisplayedSoftware(
                 name: software.trackName ?? "",
                 artistName: software.artistName ?? "",
                 screenshotUrls: software.screenshotUrls ?? []
             )
         }
-
-        let viewModel = Search.FetchSoftwares.ViewModel(
-            softwares: displayedSoftwares,
-            isEmpty: false
-        )
-
-        viewController?.displaySoftwares(viewModel: viewModel)
+        
+        viewController?.displaySoftwares(viewModel: .init(softwares: displayedSoftwares))
     }
-
+    
     func presentLoading() {
         viewController?.displayLoading()
     }

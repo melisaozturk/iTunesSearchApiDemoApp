@@ -10,20 +10,19 @@ import Foundation
 protocol Endpoint {
     var base: String { get }
     var path: String { get }
-    var queryItem: [URLQueryItem] { get }
+    var queryItems: [URLQueryItem] { get }
 }
 
 extension Endpoint {
-    var urlComponents: URLComponents {
-        var components = URLComponents(string: base)!
+    var urlComponents: URLComponents? {
+        guard var components = URLComponents(string: base) else { return nil }
         components.path = path
-        components.queryItems = queryItem
-        
+        components.queryItems = queryItems
         return components
     }
     
-    var request: URLRequest {
-        let url = urlComponents.url!
+    var request: URLRequest? {
+        guard let url = urlComponents?.url else { return nil }
         return URLRequest(url: url)
     }
 }

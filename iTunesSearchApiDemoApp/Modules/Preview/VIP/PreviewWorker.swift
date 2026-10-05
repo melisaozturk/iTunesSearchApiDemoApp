@@ -7,19 +7,21 @@
 
 import UIKit
 
-protocol PreviewWorkerLogic {
-    @discardableResult
+protocol PreviewWorkerLogic: AnyObject {
     func loadImage(url: String,
                    completion: @escaping (Result<UIImage, NetworkError>) -> Void) -> Cancellable?
-    // ← NetworkError (Error yerine)
 }
 
 final class PreviewWorker: PreviewWorkerLogic {
 
-    @discardableResult
+    private let imageDownloadManager: ImageDownloadManager
+
+    init(imageDownloadManager: ImageDownloadManager = .shared) {
+        self.imageDownloadManager = imageDownloadManager
+    }
+
     func loadImage(url: String,
                    completion: @escaping (Result<UIImage, NetworkError>) -> Void) -> Cancellable? {
-        // ImageDownloadManager NetworkError döndürüyor artık
-        return ImageDownloadManager.shared.downloadImage(from: url, completion: completion)
+        imageDownloadManager.downloadImage(from: url, completion: completion)
     }
 }

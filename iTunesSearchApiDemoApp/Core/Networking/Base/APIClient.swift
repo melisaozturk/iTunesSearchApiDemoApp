@@ -14,13 +14,11 @@ protocol Cancellable {
 extension URLSessionDataTask: Cancellable {}
 
 protocol APIClient {
-    @discardableResult
     func send(_ request: URLRequest,
               completion: @escaping (Result<Data, APIError>) -> Void) -> Cancellable
 }
 
 extension APIClient {
-    @discardableResult
     func fetch<T: Decodable>(_ type: T.Type,
                              request: URLRequest,
                              decoder: JSONDecoder = JSONDecoder(),

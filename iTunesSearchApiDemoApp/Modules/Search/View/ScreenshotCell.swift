@@ -12,17 +12,24 @@ final class ScreenshotCell: UICollectionViewCell {
     
     static let reuseIdentifier = "ScreenshotCell"
     
+    typealias ImageCompletion = (Result<UIImage, NetworkError>) -> Void
+    typealias ImageProvider   = (String, @escaping ImageCompletion) -> Cancellable?
+    
     private var currentDownloadTask: Cancellable?
     private var representedUrl: String?
     
+    var isImageLoaded: Bool {
+        screenshotImageView.image != nil
+    }
+    
     // MARK: - UI Components
-        private let screenshotImageView: UIImageView = {
-        let iv = UIImageView()
-        iv.contentMode = .scaleAspectFill
-        iv.clipsToBounds = true
-        iv.backgroundColor = .systemGray6
-        iv.layer.cornerRadius = 8
-        return iv
+    private let screenshotImageView: UIImageView = {
+        let imageView = UIImageView()
+        imageView.contentMode = .scaleAspectFill
+        imageView.clipsToBounds = true
+        imageView.backgroundColor = .systemGray6
+        imageView.layer.cornerRadius = 8
+        return imageView
     }()
     
     private let activityIndicator: UIActivityIndicatorView = {
@@ -48,18 +55,20 @@ final class ScreenshotCell: UICollectionViewCell {
     }()
     
     // MARK: - Init
-    
     override init(frame: CGRect) {
         super.init(frame: frame)
         setupUI()
     }
     
     required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented") //TODO: fix
+        fatalError("init(coder:) has not been implemented")
+    }
+    
+    deinit {
+        currentDownloadTask?.cancel()
     }
     
     // MARK: - Lifecycle
-    
     override func prepareForReuse() {
         super.prepareForReuse()
         currentDownloadTask?.cancel()
@@ -81,7 +90,7 @@ final class ScreenshotCell: UICollectionViewCell {
         
         screenshotImageView.snp.makeConstraints { make in
             make.top.leading.trailing.equalToSuperview()
-            make.height.equalTo(screenshotImageView.snp.width).multipliedBy(1.5) // 2:3
+            make.height.equalTo(screenshotImageView.snp.width).multipliedBy(1.5)
         }
         
         activityIndicator.snp.makeConstraints { make in
@@ -102,23 +111,22 @@ final class ScreenshotCell: UICollectionViewCell {
     
     func configure(with app: Search.FetchSoftwares.ViewModel.DisplayedSoftware,
                    screenshotUrl: String,
-                   imageProvider: @escaping (String, @escaping (Result<UIImage, NetworkError>) -> Void) -> Cancellable?) {
+                   imageProvider: ImageProvider) {
         appNameLabel.text = app.name
         artistNameLabel.text = app.artistName
-
+        
         currentDownloadTask?.cancel()
         representedUrl = screenshotUrl
-
+        
         screenshotImageView.image = nil
         screenshotImageView.backgroundColor = .systemGray6
         activityIndicator.startAnimating()
-
-        // ImageDownloadManager.shared YERİNE inject edilen imageProvider kullan
+        
         currentDownloadTask = imageProvider(screenshotUrl) { [weak self] result in
             guard let self, self.representedUrl == screenshotUrl else { return }
-
+            
             self.activityIndicator.stopAnimating()
-
+            
             switch result {
             case .success(let image):
                 self.screenshotImageView.image = image

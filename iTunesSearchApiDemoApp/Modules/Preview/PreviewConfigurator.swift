@@ -7,30 +7,28 @@
 
 import UIKit
 
-final class PreviewConfigurator {
+final class PreviewConfigurator: AnyObject {
 
-    static func configure(imageUrl: String) -> PreviewViewController {
-        // 1. Create VIP components
+    private let imageDownloadManager: ImageDownloadManager
+
+    init(imageDownloadManager: ImageDownloadManager = .shared) {
+        self.imageDownloadManager = imageDownloadManager
+    }
+
+    func configure(imageUrl: String) -> PreviewViewController {
         let viewController = PreviewViewController()
         let interactor = PreviewInteractor(imageUrl: imageUrl)
         let presenter = PreviewPresenter()
         let router = PreviewRouter()
-        let worker = PreviewWorker()
+        let worker = PreviewWorker(imageDownloadManager: imageDownloadManager)
 
-        // 2. Wire up connections
-
-        // ViewController → Interactor, Router
         viewController.interactor = interactor
         viewController.router = router
 
-        // Interactor → Presenter, Worker
         interactor.presenter = presenter
         interactor.worker = worker
 
-        // Presenter → ViewController (weak)
         presenter.viewController = viewController
-
-        // Router → ViewController (weak)
         router.viewController = viewController
 
         return viewController

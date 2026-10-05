@@ -14,12 +14,14 @@ protocol SearchRoutingLogic: AnyObject {
 final class SearchRouter: SearchRoutingLogic {
 
     weak var viewController: UIViewController?
+    private let previewConfigurator: PreviewConfigurator
 
-    // MARK: - Routing
+    init(previewConfigurator: PreviewConfigurator = PreviewConfigurator()) {
+        self.previewConfigurator = previewConfigurator
+    }
 
     func routeToImagePreview(screenshotUrl: String) {
-        // PreviewConfigurator kullan (VIP uyumlu)
-        let preview = PreviewConfigurator.configure(imageUrl: screenshotUrl)
+        let preview = previewConfigurator.configure(imageUrl: screenshotUrl)
         viewController?.present(preview, animated: true)
     }
 }

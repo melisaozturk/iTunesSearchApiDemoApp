@@ -62,7 +62,15 @@ final class ImageDownloader: Operation, @unchecked Sendable {
             guard let self else { return }
             
             defer { finish() }
-            guard !isCancelled else { return }
+            guard !isCancelled else {
+                self.completion(.failure(.cancelled))
+                return
+            }
+            
+            if let urlError = error as? URLError, urlError.code == .cancelled {
+                self.completion(.failure(.cancelled))
+                return
+            }
             
             if let error {
                 self.completion(.failure(.networkFailure(error)))

@@ -7,22 +7,32 @@
 
 import UIKit
 
-final class SearchConfigurator {
-    static func configure() -> SearchViewController {
+final class SearchConfigurator: AnyObject {
+    
+    private let apiClient: APIClient
+    private let previewConfigurator: PreviewConfigurator
+    
+    init(apiClient: APIClient = URLSessionAPIClient(),
+         previewConfigurator: PreviewConfigurator = PreviewConfigurator()) {
+        self.apiClient = apiClient
+        self.previewConfigurator = previewConfigurator
+    }
+    
+    func configure() -> SearchViewController {
         let viewController = SearchViewController()
         let interactor = SearchInteractor()
         let presenter = SearchPresenter()
-        let router = SearchRouter()
-
+        let router = SearchRouter(previewConfigurator: previewConfigurator)
+        
         viewController.interactor = interactor
         viewController.router = router
-
+        
         interactor.presenter = presenter
-        interactor.worker = SearchWorker()
-
+        interactor.worker = SearchWorker(apiClient: apiClient)
+        
         presenter.viewController = viewController
         router.viewController = viewController
-
+        
         return viewController
     }
 }

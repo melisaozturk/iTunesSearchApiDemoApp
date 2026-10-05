@@ -17,14 +17,14 @@ extension SearchEndpoint: Endpoint {
         return "https://itunes.apple.com"
         
     }
-
+    
     var path: String {
         switch self {
         case .search: return "/search"
         }
     }
-        
-    var queryItem: [URLQueryItem] {
+    
+    var queryItems: [URLQueryItem] {
         switch self {
         case .search(let searchTerm):
             return [

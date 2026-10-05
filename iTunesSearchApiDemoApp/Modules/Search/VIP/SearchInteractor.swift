@@ -8,17 +8,12 @@
 import Foundation
 import UIKit
 
-protocol SearchBusinessLogic {
+protocol SearchBusinessLogic: AnyObject {
     func fetchSoftwares(request: Search.FetchSoftwares.Request)
     func cancelSearch()
     func handleMemoryWarning()
-    @discardableResult
-    func loadImage(
-        url: String,
-        completion: @escaping (
-            Result<UIImage, NetworkError>
-        ) -> Void
-    ) -> Cancellable?
+    func loadImage(url: String,
+                   completion: @escaping (Result<UIImage, NetworkError>) -> Void) -> Cancellable?
 }
 
 final class SearchInteractor: SearchBusinessLogic {
@@ -60,7 +55,6 @@ final class SearchInteractor: SearchBusinessLogic {
                         softwares: softwares,
                         error: nil))
                 case .failure(.network(.cancelled)):
-                    // Yeni arama eskisini iptal etti; ekranda "Search cancelled" göstermeye gerek yok
                     return
                     
                 case .failure(let error):
@@ -81,7 +75,6 @@ final class SearchInteractor: SearchBusinessLogic {
         worker?.cancelPrefetchDownloads()
     }
     
-    @discardableResult
     func loadImage(url: String, completion: @escaping (Result<UIImage, NetworkError>) -> Void) -> Cancellable? {
         return worker?.loadImage(url: url, completion: completion)
     }

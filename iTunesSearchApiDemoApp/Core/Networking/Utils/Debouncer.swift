@@ -18,6 +18,10 @@ final class Debouncer {
         self.queue = queue
     }
     
+    deinit {
+        cancel()
+    }
+    
     func debounce(action: @escaping () -> Void) {
         workItem?.cancel()
         

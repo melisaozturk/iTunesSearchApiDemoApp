@@ -5,7 +5,7 @@
 //  Created by Melisa Öztürk on 4.10.2026.
 //
 
-protocol PreviewPresentationLogic {
+protocol PreviewPresentationLogic: AnyObject {
     func presentImage(response: Preview.LoadImage.Response)
     func presentLoading()
 }
@@ -15,7 +15,6 @@ final class PreviewPresenter: PreviewPresentationLogic {
     weak var viewController: PreviewDisplayLogic?
 
     func presentImage(response: Preview.LoadImage.Response) {
-        // ERROR CASE
         if let error = response.error {
             let errorMessage = formatErrorMessage(error)
             let viewModel = Preview.LoadImage.ViewModel(
@@ -25,8 +24,7 @@ final class PreviewPresenter: PreviewPresentationLogic {
             viewController?.displayImage(viewModel: viewModel)
             return
         }
-
-        // SUCCESS CASE
+        
         let viewModel = Preview.LoadImage.ViewModel(
             image: response.image,
             errorMessage: nil
@@ -37,8 +35,6 @@ final class PreviewPresenter: PreviewPresentationLogic {
     func presentLoading() {
         viewController?.displayLoading()
     }
-
-    // MARK: - Private Helpers
 
     private func formatErrorMessage(_ error: NetworkError) -> String {
         return error.userMessage
