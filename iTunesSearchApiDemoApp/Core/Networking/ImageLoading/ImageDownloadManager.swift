@@ -17,7 +17,7 @@ final class ImageDownloadManager {
     private let session: URLSession
     private let downloadQueue: OperationQueue
 
-    // Aynı URL'i bekleyen herkesin callback'i burada tutulur
+    /// Aynı URL'i bekleyen herkesin callback'i burada tutulur. TODO:
     private var callbacks: [URL: [UUID: Completion]] = [:]
     private var activeDownloads: [URL: ImageDownloader] = [:]
     private let lock = NSLock()
@@ -44,7 +44,7 @@ final class ImageDownloadManager {
         let operation = ImageDownloader(url: url, session: session) { [weak self] result in
             guard let self else { return }
 
-            // İptal sadece removeCallback'ten gelir ve orada state zaten temizlenmiştir.
+            //TODO: İptal sadece removeCallback'ten gelir ve orada state zaten temizlenmiştir.
             // Burada deliver çağırırsak aynı URL için sonradan başlamış yeni indirmeyi bozarız.
             if case .failure(.cancelled) = result { return }
 
@@ -61,13 +61,13 @@ final class ImageDownloadManager {
 
     private func deliver(_ result: Result<UIImage, NetworkError>, for url: URL) {
         lock.lock()
-        let handlers = callbacks.removeValue(forKey: url).map { Array($0.values) } ?? []
+        let waitingCompletions = callbacks.removeValue(forKey: url).map { Array($0.values) } ?? []
         activeDownloads.removeValue(forKey: url)
         lock.unlock()
 
-        guard !handlers.isEmpty else { return }
+        guard !waitingCompletions.isEmpty else { return }
         DispatchQueue.main.async {
-            handlers.forEach { $0(result) }
+            waitingCompletions.forEach { $0(result) }
         }
     }
 
@@ -87,7 +87,7 @@ final class ImageDownloadManager {
 
     // MARK: - Public Methods
 
-    /// Completion her zaman main thread'de çağrılır.
+    //TODO:  Completion her zaman main thread'de çağrılır.
     /// Dönen token cancel edildiğinde sadece bu çağıranın callback'i kaldırılır;
     /// başka bekleyen yoksa indirme de iptal edilir.
     
@@ -123,7 +123,7 @@ final class ImageDownloadManager {
             enqueueDownload(for: url)
         }
 
-        return DownloadToken { [weak self] in
+        return DownloadCancellation { [weak self] in
             self?.removeCallback(token, for: url)
         }
     }
@@ -131,7 +131,7 @@ final class ImageDownloadManager {
 
 // MARK: - DownloadToken
 
-private final class DownloadToken: Cancellable {
+private final class DownloadCancellation: Cancellable {
     private var onCancel: (() -> Void)?
 
     init(onCancel: @escaping () -> Void) {

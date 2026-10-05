@@ -33,5 +33,4 @@ extension SearchEndpoint: Endpoint {
             ]
         }
     }
-    
 }

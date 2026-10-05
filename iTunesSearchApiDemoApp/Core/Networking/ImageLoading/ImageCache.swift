@@ -8,6 +8,7 @@
 import UIKit
 
 final class ImageCache {
+    
     static let shared = ImageCache()
     private let memoryCache = NSCache<NSURL, UIImage>()
 

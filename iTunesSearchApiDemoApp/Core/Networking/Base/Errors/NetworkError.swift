@@ -5,11 +5,8 @@
 //  Created by Melisa Öztürk on 4.10.2026.
 //
 
-
 import Foundation
 
-/// Shared network layer error for all network operations
-/// Used by both API calls (SearchWorker) and Image downloads (ImageDownloadManager)
 enum NetworkError: Error {
     case invalidURL
     case networkFailure(Error)
@@ -19,7 +16,7 @@ enum NetworkError: Error {
     case invalidData
 }
 
-// MARK: - User-Friendly Messages
+// MARK: - Messages
 extension NetworkError: LocalizedError {
     var errorDescription: String? {
         switch self {
@@ -39,7 +36,7 @@ extension NetworkError: LocalizedError {
     }
 }
 
-// MARK: - User-Presentable Messages (for UI)
+// MARK: - UI Messages
 extension NetworkError {
     var userMessage: String {
         switch self {

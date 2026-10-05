@@ -5,16 +5,14 @@
 //  Created by Melisa Öztürk on 2.10.2026.
 //
 
-
 import Foundation
 
-/// API-specific errors for iTunes Search API
 enum APIError: Error {
-    case network(NetworkError)  // ← NetworkError wrap ediliyor
-    case decoding(Error)        // ← API'ya özel
+    case network(NetworkError)
+    case decoding(Error)
 }
 
-// MARK: - User-Friendly Messages
+// MARK: - Messages
 extension APIError: LocalizedError {
     var errorDescription: String? {
         switch self {
@@ -26,7 +24,6 @@ extension APIError: LocalizedError {
     }
 }
 
-// MARK: - User-Presentable Messages
 extension APIError {
     var userMessage: String {
         switch self {

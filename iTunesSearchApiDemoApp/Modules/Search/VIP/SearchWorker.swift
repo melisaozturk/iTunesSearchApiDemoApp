@@ -64,7 +64,7 @@ final class SearchWorker: SearchWorkerLogic {
         lock.unlock()
 
         // 3. Eskileri lock dışında iptal et
-        oldTasks.forEach { $0.cancel() }
+        oldTasks.forEach { $0.cancel() }//TODO: escaping closure->main thrread?
     }
 
     func cancelPrefetchDownloads() {
