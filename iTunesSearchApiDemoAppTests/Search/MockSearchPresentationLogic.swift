@@ -1,5 +1,5 @@
 //
-//  SearchPresentationLogicSpy.swift
+//  MockSearchPresentationLogic.swift
 //  iTunesSearchApiDemoApp
 //
 //  Created by Melisa Öztürk on 5.10.2026.
@@ -7,7 +7,7 @@
 
 @testable import iTunesSearchApiDemoApp
 
-class SearchPresentationLogicSpy: SearchPresentationLogic {
+class MockSearchPresentationLogic: SearchPresentationLogic {
     var presentSoftwaresCalled = false
     var presentLoadingCalled = false
     var presentedResponse: Search.FetchSoftwares.Response?

@@ -38,7 +38,7 @@ final class SearchViewController: UIViewController {
         searchBar.delegate = self
         searchBar.autocapitalizationType = .none
         searchBar.autocorrectionType = .no
-        searchBar.showsCancelButton = true
+        searchBar.showsCancelButton = false
         return searchBar
     }()
  

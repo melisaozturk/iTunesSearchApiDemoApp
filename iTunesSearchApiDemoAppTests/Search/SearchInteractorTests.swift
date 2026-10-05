@@ -10,8 +10,8 @@ import XCTest
 
 final class SearchInteractorTests: XCTestCase {
     private var sut: SearchInteractor!
-    private var presenterSpy: SearchPresentationLogicSpy!
-    private var workerSpy: SearchWorkerLogicSpy!
+    private var presenterMock: MockSearchPresentationLogic!
+    private var workerMock: MockSearchWorkerLogic!
 
     // MARK: - Test Lifecycle
 
@@ -22,8 +22,8 @@ final class SearchInteractorTests: XCTestCase {
 
     override func tearDown() {
         sut = nil
-        presenterSpy = nil
-        workerSpy = nil
+        presenterMock = nil
+        workerMock = nil
         super.tearDown()
     }
 
@@ -31,11 +31,11 @@ final class SearchInteractorTests: XCTestCase {
 
     func setupSearchInteractor() {
         sut = SearchInteractor()
-        presenterSpy = SearchPresentationLogicSpy()
-        workerSpy = SearchWorkerLogicSpy()
+        presenterMock = MockSearchPresentationLogic()
+        workerMock = MockSearchWorkerLogic()
 
-        sut.presenter = presenterSpy
-        sut.worker = workerSpy
+        sut.presenter = presenterMock
+        sut.worker = workerMock
     }
 
     // MARK: - Tests - fetchSoftwares
@@ -44,7 +44,7 @@ final class SearchInteractorTests: XCTestCase {
         // Given
         let request = Search.FetchSoftwares.Request(searchTerm: "Instagram")
         let expectedSoftwares = ResponseData.softwares
-        workerSpy.searchResult = .success(expectedSoftwares)
+        workerMock.searchResult = .success(expectedSoftwares)
 
         let expectation = self.expectation(description: "Wait for async completion")
 
@@ -59,9 +59,12 @@ final class SearchInteractorTests: XCTestCase {
         waitForExpectations(timeout: 1.0)
 
         // Then
-        XCTAssertTrue(presenterSpy.presentSoftwaresCalled)
-        XCTAssertEqual(presenterSpy.presentedResponse?.softwares?.count, expectedSoftwares.count)
-        XCTAssertNil(presenterSpy.presentedResponse?.error)
+        XCTAssertTrue(presenterMock.presentSoftwaresCalled)
+        XCTAssertEqual(
+            presenterMock.presentedResponse?.softwares?.count,
+            expectedSoftwares.count
+        )
+        XCTAssertNil(presenterMock.presentedResponse?.error)
     }
 
     func testFetchSoftwares_WithNetworkError_ShouldPresentError() {
@@ -70,7 +73,7 @@ final class SearchInteractorTests: XCTestCase {
         let expectedError = APIError.network(
             .networkFailure(TestError.networkEror)
         )
-        workerSpy.searchResult = .failure(expectedError)
+        workerMock.searchResult = .failure(expectedError)
 
         let expectation = self.expectation(description: "Wait for async completion")
 
@@ -84,9 +87,9 @@ final class SearchInteractorTests: XCTestCase {
         waitForExpectations(timeout: 1.0)
 
         // Then
-        XCTAssertTrue(presenterSpy.presentSoftwaresCalled)
-        XCTAssertNotNil(presenterSpy.presentedResponse?.error)
-        XCTAssertEqual(presenterSpy.presentedResponse?.softwares?.count, 0)
+        XCTAssertTrue(presenterMock.presentSoftwaresCalled)
+        XCTAssertNotNil(presenterMock.presentedResponse?.error)
+        XCTAssertEqual(presenterMock.presentedResponse?.softwares?.count, 0)
     }
 
     func testCancelSearch_ShouldCancelCurrentTask() {
@@ -98,7 +101,7 @@ final class SearchInteractorTests: XCTestCase {
         sut.cancelSearch()
 
         // Then
-        XCTAssertTrue(workerSpy.cancelledTasks.count > 0)
+        XCTAssertTrue(workerMock.cancelledTasks.count > 0)
     }
 
     func testHandleMemoryWarning_ShouldClearImageCache() {
@@ -106,6 +109,6 @@ final class SearchInteractorTests: XCTestCase {
         sut.handleMemoryWarning()
 
         // Then
-        XCTAssertTrue(workerSpy.clearImageCacheCalled)
+        XCTAssertTrue(workerMock.clearImageCacheCalled)
     }
 }

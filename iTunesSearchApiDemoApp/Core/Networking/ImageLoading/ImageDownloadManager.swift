@@ -10,11 +10,9 @@ import UIKit
 final class ImageDownloadManager {
 
     static let shared = ImageDownloadManager()
-
-    typealias Completion = (Result<UIImage, NetworkError>) -> Void  // ← NetworkError
+    typealias Completion = (Result<UIImage, NetworkError>) -> Void
 
     // MARK: - Properties
-
     private let cache: ImageCache
     private let session: URLSession
     private let downloadQueue: OperationQueue
@@ -36,7 +34,6 @@ final class ImageDownloadManager {
     }
 
     // MARK: - Private
-
     private func enqueueDownload(for url: URL) {
         lock.lock()
         guard callbacks[url]?.isEmpty == false, activeDownloads[url] == nil else {
@@ -57,7 +54,7 @@ final class ImageDownloadManager {
         downloadQueue.addOperation(operation)
     }
 
-    private func deliver(_ result: Result<UIImage, NetworkError>, for url: URL) {  // ← NetworkError
+    private func deliver(_ result: Result<UIImage, NetworkError>, for url: URL) {
         lock.lock()
         let handlers = callbacks.removeValue(forKey: url).map { Array($0.values) } ?? []
         activeDownloads.removeValue(forKey: url)

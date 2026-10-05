@@ -1,5 +1,5 @@
-//TODO: APIClientMock
-//  APIClientSpy.swift
+//
+//  MockAPIClient.swift
 //  iTunesSearchApiDemoApp
 //
 //  Created by Melisa Öztürk on 5.10.2026.
@@ -8,7 +8,7 @@
 @testable import iTunesSearchApiDemoApp
 import Foundation
 
-class APIClientSpy: APIClient {
+class MockAPIClient: APIClient {
 
     // MARK: - Tracking Properties
     var sendCalled = false
@@ -39,26 +39,8 @@ class APIClientSpy: APIClient {
             }
         }
 
-        return CancellableTaskSpy()
+        return MockCancellableTask()
     }
-
-    // MARK: - Helper Methods for Tests
-
-    /// Set result for fetch<T> calls
-//    func setFetchResult<T: Decodable>(_ result: Result<T, APIError>) {
-//        // Convert to Data result for send()
-//        switch result {
-//        case .success(let value):
-//            do {
-//                let data = try JSONEncoder().encode(value)
-//                sendResult = .success(data)
-//            } catch {
-//                sendResult = .failure(.decoding(error))
-//            }
-//        case .failure(let error):
-//            sendResult = .failure(error)
-//        }
-//    }
 
     /// Set raw data result for send() calls
     func setSendResult(_ result: Result<Data, APIError>) {

@@ -8,8 +8,7 @@
 import Foundation
 @testable import iTunesSearchApiDemoApp
 
-// MARK: - Test Spy for Cancellable
-class CancellableTaskSpy: Cancellable {
+class MockCancellableTask: Cancellable {
     var cancelCalled = false
 
     func cancel() {

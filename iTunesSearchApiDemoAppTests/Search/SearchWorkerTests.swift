@@ -12,7 +12,7 @@ final class SearchWorkerTests: XCTestCase {
 
     // MARK: - System Under Test
     var sut: SearchWorker!
-    var apiClientSpy: APIClientSpy!
+    var apiClientMock: MockAPIClient!
 
     override func setUp() {
         super.setUp()
@@ -20,7 +20,7 @@ final class SearchWorkerTests: XCTestCase {
 
     override func tearDown() {
         sut = nil
-        apiClientSpy = nil
+        apiClientMock = nil
         super.tearDown()
     }
 }

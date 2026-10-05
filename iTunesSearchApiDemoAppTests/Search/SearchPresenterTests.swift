@@ -11,7 +11,7 @@ import XCTest
 final class SearchPresenterTests: XCTestCase {
 
     var sut: SearchPresenter!
-    var viewControllerSpy: SearchDisplayLogicSpy!
+    var viewControllerMock: MockSearchDisplayLogic!
 
     override func setUp() {
         super.setUp()
@@ -20,14 +20,14 @@ final class SearchPresenterTests: XCTestCase {
 
     override func tearDown() {
         sut = nil
-        viewControllerSpy = nil
+        viewControllerMock = nil
         super.tearDown()
     }
 
     func setupSearchPresenter() {
         sut = SearchPresenter()
-        viewControllerSpy = SearchDisplayLogicSpy()
-        sut.viewController = viewControllerSpy
+        viewControllerMock = SearchDisplayLogicMock()
+        sut.viewController = viewControllerMock
     }
 
     func testPresentSoftwares_WithEmptyArray_ShouldDisplayError() {
@@ -35,8 +35,11 @@ final class SearchPresenterTests: XCTestCase {
 
         sut.presentSoftwares(response: response)
         
-        XCTAssertTrue(viewControllerSpy.displayErrorCalled)
-        XCTAssertEqual(viewControllerSpy.displayedErrorMessage, "No results found")
+        XCTAssertTrue(viewControllerMock.displayErrorCalled)
+        XCTAssertEqual(
+            viewControllerMock.displayedErrorMessage,
+            "No results found"
+        )
     }
 
     func testPresentSoftwares_WithValidSoftwares_ShouldDisplaySoftwares() {      
@@ -47,11 +50,11 @@ final class SearchPresenterTests: XCTestCase {
         
         sut.presentSoftwares(response: response)
 
-        XCTAssertTrue(viewControllerSpy.displaySoftwaresCalled)
-        XCTAssertEqual(viewControllerSpy.displayedViewModel?.softwares?.count, 2)
-        XCTAssertEqual(viewControllerSpy.displayedViewModel?.isEmpty, false)
+        XCTAssertTrue(viewControllerMock.displaySoftwaresCalled)
+        XCTAssertEqual(viewControllerMock.displayedViewModel?.softwares?.count, 2)
+        XCTAssertEqual(viewControllerMock.displayedViewModel?.isEmpty, false)
 
-        let firstApp = viewControllerSpy.displayedViewModel?.softwares?.first
+        let firstApp = viewControllerMock.displayedViewModel?.softwares?.first
         XCTAssertEqual(firstApp?.name, "Instagram")
         XCTAssertEqual(firstApp?.artistName, "Instagram, Inc.")
         XCTAssertEqual(firstApp?.screenshotUrls?.count, 1)
@@ -60,6 +63,6 @@ final class SearchPresenterTests: XCTestCase {
     func testPresentLoading_ShouldCallViewController() {
         sut.presentLoading()
 
-        XCTAssertTrue(viewControllerSpy.displayLoadingCalled)
+        XCTAssertTrue(viewControllerMock.displayLoadingCalled)
     }
 }

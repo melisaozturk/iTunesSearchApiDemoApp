@@ -1,5 +1,5 @@
 //
-//  SearchWorkerLogicSpy.swift
+//  MockSearchWorkerLogic.swift
 //  iTunesSearchApiDemoApp
 //
 //  Created by Melisa Öztürk on 5.10.2026.
@@ -9,7 +9,7 @@
 import Foundation
 import UIKit
 
-class SearchWorkerLogicSpy: SearchWorkerLogic {
+class MockSearchWorkerLogic: SearchWorkerLogic {
     var searchSoftwaresCalled = false
     var searchTerm: String?
     var searchResult: Result<[SoftwareResult], APIError>?
@@ -34,7 +34,7 @@ class SearchWorkerLogicSpy: SearchWorkerLogic {
             }
         }
 
-        let task = CancellableTaskSpy()
+        let task = MockCancellableTask()
         cancelledTasks.append(task)
         return task
     }
@@ -53,7 +53,7 @@ class SearchWorkerLogicSpy: SearchWorkerLogic {
         loadImageCalled = true
         loadImageURL = url
         loadImageCompletion = completion
-        return CancellableTaskSpy()
+        return MockCancellableTask()
     }
 
     func triggerLoadImageCompletion(with result: Result<UIImage, NetworkError>) {
