@@ -216,12 +216,7 @@ extension SearchViewController: UICollectionViewDelegate {
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         guard let url = screenshotUrl(at: indexPath) else { return }
         router?.routeToImagePreview(screenshotUrl: url)
-    }
-    
-    func collectionView(_ collectionView: UICollectionView,
-                        shouldSelectItemAt indexPath: IndexPath) -> Bool {
-        (collectionView.cellForItem(at: indexPath) as? ScreenshotCell)?.isImageLoaded ?? false
-    }
+    }    
 }
 
 // MARK: - UISearchBarDelegate
