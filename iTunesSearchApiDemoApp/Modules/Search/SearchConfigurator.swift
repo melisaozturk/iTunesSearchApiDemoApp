@@ -7,7 +7,7 @@
 
 import UIKit
 
-final class SearchConfigurator: AnyObject {
+final class SearchConfigurator {
     
     private let apiClient: APIClient
     private let previewConfigurator: PreviewConfigurator

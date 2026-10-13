@@ -7,7 +7,7 @@
 
 import UIKit
 
-final class PreviewConfigurator: AnyObject {
+final class PreviewConfigurator {
 
     private let imageDownloadManager: ImageDownloadManager
 

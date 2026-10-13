@@ -14,6 +14,7 @@ protocol SearchBusinessLogic: AnyObject {
     func handleMemoryWarning()
     func loadImage(url: String,
                    completion: @escaping (Result<UIImage, NetworkError>) -> Void) -> Cancellable?
+    func toggleFavorite(request: Search.ToggleFavorite.Request)
 }
 
 final class SearchInteractor: SearchBusinessLogic {
@@ -77,6 +78,19 @@ final class SearchInteractor: SearchBusinessLogic {
     
     func loadImage(url: String, completion: @escaping (Result<UIImage, NetworkError>) -> Void) -> Cancellable? {
         return worker?.loadImage(url: url, completion: completion)
+    }
+    
+    func toggleFavorite(request: Search.ToggleFavorite.Request) {
+        let url = request.url
+        let wasFavorite = worker?.favoriteUrls().contains(url) ?? false
+
+        if wasFavorite {
+            worker?.removeFavorite(url: url)
+        } else {
+            worker?.addFavorite(url: url)
+        }
+
+        presenter?.presentFavorite(response: .init(url: url, isFavorite: !wasFavorite))
     }
 }
 

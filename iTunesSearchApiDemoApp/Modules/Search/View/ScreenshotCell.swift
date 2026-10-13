@@ -76,6 +76,7 @@ final class ScreenshotCell: UICollectionViewCell {
         appNameLabel.text = nil
         artistNameLabel.text = nil
         activityIndicator.stopAnimating()
+        contentView.backgroundColor = .clear
     }
     
     private func setupUI() {
@@ -107,10 +108,12 @@ final class ScreenshotCell: UICollectionViewCell {
     
     func configure(with app: Search.FetchSoftwares.ViewModel.DisplayedSoftware,
                    screenshotUrl: String,
+                   isFavorite: Bool,
                    imageProvider: ImageProvider) {
         appNameLabel.text = app.name
         artistNameLabel.text = app.artistName
-        
+        contentView.backgroundColor = isFavorite ? .systemRed : .clear
+
         currentDownloadTask?.cancel()
         representedUrl = screenshotUrl
         

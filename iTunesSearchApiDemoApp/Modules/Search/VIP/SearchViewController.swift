@@ -12,6 +12,7 @@ protocol SearchDisplayLogic: AnyObject {
     func displaySoftwares(viewModel: Search.FetchSoftwares.ViewModel)
     func displayLoading()
     func displayError(message: String)
+    func displayFavorite(viewModel: Search.ToggleFavorite.ViewModel)
 }
 
 final class SearchViewController: UIViewController {
@@ -31,7 +32,8 @@ final class SearchViewController: UIViewController {
     
     private var displayedSoftwares: [Search.FetchSoftwares.ViewModel.DisplayedSoftware] = []
     private let debouncer = Debouncer(delay: Constants.debouncerDelay)
-    
+    private var favoriteUrls: [String] = []
+
     // MARK: - UI Components
     private lazy var searchBar: UISearchBar = {
         let searchBar = UISearchBar()
@@ -168,6 +170,16 @@ extension SearchViewController: SearchDisplayLogic {
         emptyStateLabel.text = message
         emptyStateLabel.isHidden = false
     }
+    
+    func displayFavorite(viewModel: Search.ToggleFavorite.ViewModel) {
+        if viewModel.isFavorite {
+            favoriteUrls.append(viewModel.url)
+        } else {
+            favoriteUrls.removeAll { $0 == viewModel.url }
+        }
+        
+        collectionView.reloadData()
+    }
 }
 
 // MARK: - UICollectionViewDataSource
@@ -190,6 +202,7 @@ extension SearchViewController: UICollectionViewDataSource {
         cell.configure(
             with: displayedSoftwares[indexPath.section],
             screenshotUrl: url,
+            isFavorite: favoriteUrls.contains(url),
             imageProvider: { [weak self] urlString, completion in
                 guard let self = self else { return nil }
                 return self.interactor?.loadImage(url: urlString, completion: completion)
@@ -212,11 +225,11 @@ extension SearchViewController: UICollectionViewDelegateFlowLayout {
 }
 
 // MARK: - UICollectionViewDelegate
-extension SearchViewController: UICollectionViewDelegate {
+extension SearchViewController: UICollectionViewDelegate {    
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         guard let url = screenshotUrl(at: indexPath) else { return }
-        router?.routeToImagePreview(screenshotUrl: url)
-    }    
+        interactor?.toggleFavorite(request: .init(url: url))
+    }
 }
 
 // MARK: - UISearchBarDelegate

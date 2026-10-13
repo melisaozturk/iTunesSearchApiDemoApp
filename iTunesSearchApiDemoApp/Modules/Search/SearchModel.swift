@@ -27,4 +27,22 @@ enum Search {
             let softwares: [DisplayedSoftware]
         }
     }
+
+    
+    enum ToggleFavorite {
+
+        struct Request {
+            let url: String
+        }
+
+        struct Response {
+            let url: String
+            let isFavorite: Bool
+        }
+
+        struct ViewModel {
+            let url: String
+            let isFavorite: Bool
+        }
+    }
 }

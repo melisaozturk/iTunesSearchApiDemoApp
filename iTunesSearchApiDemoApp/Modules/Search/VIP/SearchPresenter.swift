@@ -10,6 +10,7 @@ import Foundation
 protocol SearchPresentationLogic: AnyObject {
     func presentSoftwares(response: Search.FetchSoftwares.Response)
     func presentLoading()
+    func presentFavorite(response: Search.ToggleFavorite.Response)
 }
 
 final class SearchPresenter: SearchPresentationLogic {
@@ -45,5 +46,12 @@ final class SearchPresenter: SearchPresentationLogic {
     
     func presentLoading() {
         viewController?.displayLoading()
+    }
+    
+    func presentFavorite(response: Search.ToggleFavorite.Response) {
+        viewController?.displayFavorite(viewModel: .init(
+               url: response.url,
+               isFavorite: response.isFavorite
+           ))        
     }
 }

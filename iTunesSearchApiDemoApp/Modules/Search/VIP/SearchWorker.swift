@@ -16,14 +16,20 @@ protocol SearchWorkerLogic: AnyObject {
     func cancelPrefetchDownloads()
     func loadImage(url: String,
                    completion: @escaping (Result<UIImage, NetworkError>) -> Void) -> Cancellable?
+    func addFavorite(url: String)
+    func removeFavorite(url: String)
+    func favoriteUrls() -> [String]
 }
 
 final class SearchWorker: SearchWorkerLogic {
     private let apiClient: APIClient
     private var prefetchDownloadTasks: [Cancellable] = []
-    
-    init(apiClient: APIClient = URLSessionAPIClient()) {
+    private let favoritesManager: FavoritesManagerProtocol
+
+    init(apiClient: APIClient = URLSessionAPIClient(),
+         favoritesManager: FavoritesManagerProtocol = FavoritesManager.shared) {
         self.apiClient = apiClient
+        self.favoritesManager = favoritesManager
     }
     
     deinit {
@@ -67,5 +73,17 @@ final class SearchWorker: SearchWorkerLogic {
     func loadImage(url: String,
                    completion: @escaping (Result<UIImage, NetworkError>) -> Void) -> Cancellable? {
         ImageDownloadManager.shared.downloadImage(from: url, completion: completion)
+    }
+    
+    func addFavorite(url: String) {
+        favoritesManager.add(url: url)
+    }
+    
+    func removeFavorite(url: String) {
+        favoritesManager.remove(url: url)
+    }
+    
+    func favoriteUrls() -> [String] {
+        favoritesManager.favorites
     }
 }
